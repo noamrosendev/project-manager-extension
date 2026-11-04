@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Project Manager Options</title>
+  <link rel="stylesheet" href="../lib/ui.css">
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <main>
+    <h1>Project Manager</h1>
+    <p class="muted">Detects when an AI-assisted project is circling rather than progressing.
+      It does not do the work and will not suggest a direction. It reads, compares against the goal
+      and the commitment ledger, and reports. <a id="feedback" href="https://github.com/noamrosendev/project-manager-extension/issues" target="_blank" rel="noreferrer">Send feedback</a>.</p>
+
+    <form id="settings">
+      <h2>OpenAI</h2>
+      <label for="apiKey">API key</label>
+      <div class="row">
+        <input id="apiKey" type="password" autocomplete="off" spellcheck="false" placeholder="sk-...">
+        <button type="button" id="toggleKey">Show</button>
+        <button type="button" id="testKey">Test key</button>
+      </div>
+      <p class="hint"><a id="keySteps" href="welcome.html">How to get a key</a>.</p>
+      <p class="hint">Stored only in this browser (<code>chrome.storage.local</code>). Sent only to
+        <code>api.openai.com</code>. Never included in exports. About 2 cents per captured round with gpt-4o, more with more out-of-scope rules (measured on 161 stored rounds, 4 Nov 2026).</p>
+      <p id="keyStatus" class="hint" role="status"></p>
+
+      <label for="model">Model</label>
+      <input id="model" type="text" spellcheck="false" placeholder="gpt-4o">
+      <p class="hint">The checks were validated with <code>gpt-4o</code>. Change only if you know why.</p>
+
+      <h2>Checks</h2>
+      <label for="graceRounds">Rounds before an unconfirmed commitment counts as not done</label>
+      <input id="graceRounds" type="number" min="1" max="20" step="1" style="max-width: 100px">
+      <p class="hint">Project Manager only reads the assistant's replies, so work you did yourself is invisible to it.
+        When a reply doesn't address the open commitment, check C2 shows <strong>unverifiable</strong> (a warning)
+        instead of failing. You can confirm it with <strong>Mark executed</strong> or <strong>Close with reason</strong>.
+        If you haven't resolved it after this many rounds, C2 fails. Default 3.</p>
+      <p class="hint" id="c7Note"><strong>C7 (asks piling up) is counting only.</strong> It shows how many open steps
+        are yours, the assistant's, waits, or unclear, but never warns or fails. Its old thresholds were fitted to a
+        count that included almost every commitment, so they mean nothing now that only your own steps count. It will
+        be refitted from real rounds in which who must act is known.</p>
+      <label class="inline"><input type="checkbox" id="askStale"> Ask about stale commitments before a capture</label>
+      <p class="hint">Off by default. Commitments are judged from the responses you capture; ones nothing settles
+        are left open to age (C3) and listed under <strong>Stale</strong> in the popup and on-page panel, where you
+        can act on them when you choose.</p>
+
+      <div class="row actions">
+        <button type="submit" class="primary">Save settings</button>
+        <span id="settingsStatus" class="hint" role="status"></span>
+      </div>
+    </form>
+
+    <h2>Projects</h2>
+    <p class="hint top">Projects start when you capture your first round in a conversation: the capture
+      button asks which project it belongs to, or lets you name a new one. Manage them here. Each project
+      has its own goal, commitment ledger and round history, and rounds are never compared across projects.</p>
+    <div id="projects"></div>
+    <p id="noProjects" class="empty-note" hidden>No projects yet. Click <strong>Capture round</strong> under a
+      response on chatgpt.com or claude.ai to start one.</p>
+
+    <h2>Stale backlog</h2>
+    <p class="hint top">Every commitment C3 counts as open for 2 or more rounds, oldest first, with the sentence it
+      came from and the round that raised it. Nothing here closes by itself and no model is asked: close or
+      defer each one with a click.</p>
+    <div id="staleBacklog"></div>
+
+    <h2>Automatic assignment (shadow mode)</h2>
+    <p class="hint top">On a conversation's first capture, Project Manager predicts which project it belongs to and
+      records the prediction next to the project you choose. It acts on nothing: it never files a conversation
+      and never writes to a ledger. A prediction needs a quote found in the conversation and a lead of at least
+      25 points over the runner-up (another project, or none of them); otherwise it abstains, and that is
+      recorded too. The tally shows what automatic assignment could cover before any of it is switched on.</p>
+    <div id="shadow"></div>
+
+    <h2>Event record</h2>
+    <p class="hint top">Every verdict rendered and every later event that bears on it (resolved, reopened,
+      deferred, restated, undone), kept append-only so the checks' accuracy can be measured later. Events
+      only: nothing here decides whether a check was right. Capped at 5 MB for all projects together; over
+      the cap the oldest verdicts lose their evidence text first, and if that isn't enough recording stops
+      and this says so.</p>
+    <p id="eventRecord" class="hint"></p>
+
+    <h2>Check accuracy</h2>
+    <p class="hint top">Read from the event record through a declared mapping (<code>lib/accuracy.js</code>), from
+      verdicts as they were recorded at capture, never recomputed. Three outcomes: right, wrong, no outcome. A
+      resolution nobody reopened is counted as unchallenged, never as right. Three states per check: measured by
+      events (a claim decided through the mapping), measured by hand (your scored panels, with their source), or
+      never tested. A check that has only ever passed is never tested, not right.</p>
+    <div id="accuracy"></div>
+
+    <h2>Backup</h2>
+    <div class="row">
+      <button type="button" id="export">Export all projects</button>
+      <button type="button" id="importAdd">Import and add…</button>
+      <button type="button" id="importReplace" class="danger">Import and replace all…</button>
+      <input type="file" id="importFile" accept="application/json,.json" hidden>
+    </div>
+    <p class="hint">Exports every project's name, goal and ledger, plus which conversation belongs to which
+      project. The API key is never included. Import also accepts a v0.1 export or <code>manager.py</code>'s
+      <code>ledger.json</code>, which arrives as one project.</p>
+    <p id="dataStatus" class="hint" role="status"></p>
+
+    <h2>Debug</h2>
+    <label class="inline"><input type="checkbox" id="debug"> Debug mode</label>
+    <p class="hint">Logs every step (page script, right-click, capture, OpenAI call) to the service worker
+      console and to the log below, and shows a status pill in the bottom-left of chatgpt.com / claude.ai.
+      Also adds <strong>Project Manager: show a test error</strong> to the right-click menu on those sites.
+      API keys are masked in the log.</p>
+    <textarea id="debugLog" rows="14" readonly spellcheck="false" aria-label="Debug log"></textarea>
+    <div class="row actions">
+      <button type="button" id="copyLog">Copy log</button>
+      <button type="button" id="clearLog">Clear log</button>
+      <span id="logStatus" class="hint" role="status"></span>
+    </div>
+  </main>
+  <script type="module" src="options.js"></script>
+</body>
+</html>

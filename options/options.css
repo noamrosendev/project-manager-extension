@@ -1,0 +1,85 @@
+main { max-width: 680px; margin: 0 auto; padding: 32px 16px 64px; }
+h1 { font-size: 22px; margin-bottom: 6px; }
+h2 { margin-top: 32px; }
+label { display: block; font-weight: 600; margin: 14px 0 6px; }
+input, textarea {
+  width: 100%;
+  font: inherit;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 7px 9px;
+}
+textarea { resize: vertical; font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; }
+.row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.row input { flex: 1 1 240px; width: auto; }
+.actions { margin-top: 16px; }
+.hint { font-size: 12px; color: var(--muted); margin: 6px 0 0; }
+.hint.top { margin: 0 0 12px; }
+.hint.ok { color: var(--pass); }
+.hint.bad { color: var(--fail); }
+code { font-size: 12px; }
+
+.card {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 10px;
+  background: var(--bg);
+}
+.card[open] { border-color: var(--muted); }
+.card summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  cursor: pointer;
+  list-style: none;
+}
+.card summary::-webkit-details-marker { display: none; }
+.card summary::before {
+  content: "▸";
+  color: var(--muted);
+  font-size: 11px;
+  transition: transform .15s;
+}
+.card[open] summary::before { transform: rotate(90deg); }
+.card .pname { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.card .stats { margin-left: auto; color: var(--muted); font-size: 12px; white-space: nowrap; }
+.card-body { padding: 0 14px 14px; border-top: 1px solid var(--border); }
+@media (max-width: 520px) {
+  .card .stats { display: none; }
+}
+label .optional { font-weight: 400; color: var(--muted); }
+.empty-note { color: var(--muted); border: 1px dashed var(--border); border-radius: 8px; padding: 14px; margin: 0; }
+label.inline { display: inline-flex; align-items: center; gap: 8px; margin: 0; }
+label.inline input { width: auto; }
+#debugLog { margin-top: 12px; font-size: 11.5px; white-space: pre; }
+select { font: inherit; color: var(--text); background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px; }
+.shadow-tally { margin: 0 0 8px; }
+.shadow-tally p { margin: 0 0 4px; }
+.shadow-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.shadow-table th, .shadow-table td { text-align: left; padding: 4px 6px; border-bottom: 1px solid var(--border, #ddd); vertical-align: top; }
+.shadow-table .quote { color: var(--muted); font-style: italic; }
+.scope-parsed { margin: 6px 0 4px; }
+.scope-parsed .goal-label { font-size: 12px; font-weight: 600; }
+.scope-list { margin: 4px 0 0; padding-left: 22px; font-size: 12px; }
+.scope-list li { margin: 2px 0; }
+.scope-list .scope-line { white-space: pre-wrap; }
+.scope-list .scope-kind { margin-left: 6px; font-size: 11px; color: var(--muted); }
+.scope-list .kind-conditional { color: var(--warn); }
+table.accuracy { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 6px; }
+table.accuracy th, table.accuracy td { text-align: left; vertical-align: top; padding: 4px 8px 4px 0; border-top: 1px solid var(--border); overflow-wrap: anywhere; }
+table.accuracy th { font-weight: 600; border-top: 0; }
+table.accuracy .hint { margin: 2px 0 0; font-size: 11px; }
+.stale-sweep { list-style: none; margin: 8px 0 0; padding: 0; }
+.stale-sweep li { padding: 8px 0; border-top: 1px solid var(--border); }
+.stale-sweep li:first-child { border-top: 0; }
+.stale-sweep .sweep-text { font-weight: 600; }
+.stale-sweep .sweep-source { margin: 4px 0; padding-left: 8px; border-left: 2px solid var(--border); color: var(--muted); font-size: 12px; }
+.stale-sweep .sweep-actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.stale-sweep .sweep-actions input[type=text] { flex: 1 1 180px; width: auto; }
+.stale-sweep .sweep-actions input[type=date] { width: auto; }
+
+/* Definition history: old and new values in full, line breaks kept. */
+.definition-history .edit-from, .definition-history .edit-to { white-space: pre-wrap; overflow-wrap: anywhere; }

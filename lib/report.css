@@ -1,0 +1,105 @@
+/* Verdict report: shared by the popup and the on-page report panel. Needs lib/ui.css. */
+.goal { margin: 10px 0 0; font-size: 12px; padding: 8px 10px; border-radius: 6px; background: var(--surface); }
+.goal-label { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-bottom: 4px; }
+.goal-text { white-space: pre-wrap; font: inherit; color: var(--text); margin: 0; max-height: 7.5em; overflow: hidden; }
+.goal.expanded .goal-text { max-height: none; }
+.goal-more { font-size: 12px; margin-top: 4px; }
+
+.verdict {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 8px;
+}
+.verdict .big { font-size: 20px; font-weight: 700; letter-spacing: 0.01em; }
+.verdict .meta { font-size: 12px; margin-top: 2px; opacity: 0.9; }
+.verdict .judged { font-size: 11px; margin-top: 2px; opacity: 0.75; }
+.summary { margin: 10px 0 0; font-style: italic; }
+.cumulative { margin: 6px 0 0; font-size: 12px; }
+
+.checks { list-style: none; margin: 0; padding: 0; }
+.checks li {
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  gap: 2px 10px;
+  padding: 7px 0;
+  border-top: 1px solid var(--border);
+}
+.checks li:first-child { border-top: 0; }
+.checks .pill { justify-self: start; align-self: start; margin-top: 1px; }
+.checks .name { font-weight: 600; }
+.checks .name .id { color: var(--muted); font-weight: 500; margin-right: 4px; }
+.checks .tag { color: var(--muted); font-size: 11px; font-weight: 400; margin-left: 4px; }
+.checks .ev { grid-column: 2; color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
+.checks .reason { grid-column: 2; color: var(--muted); font-size: 12px; font-style: italic; overflow-wrap: anywhere; }
+
+.commitments { list-style: none; margin: 0; padding: 0; }
+.commitments li {
+  padding: 7px 0;
+  border-top: 1px solid var(--border);
+}
+.commitments li:first-child { border-top: 0; }
+.commitments .age { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.commitments .age.stale { color: var(--warn); font-weight: 600; }
+
+.handoff textarea {
+  width: 100%;
+  height: 180px;
+  resize: vertical;
+  font: 11.5px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px;
+}
+.handoff .row { display: flex; align-items: center; gap: 10px; margin-top: 6px; }
+
+.setup-note { font-size: 12px; margin: 6px 0 0; }
+.later-note { font-size: 12px; margin: 8px 0 0; color: var(--warn); }
+.linklike { border: 0; background: none; padding: 0; color: var(--accent); text-decoration: underline; cursor: pointer; font: inherit; }
+.checks .tag.state { color: var(--warn); }
+.resolve { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 6px; }
+.resolve-form { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; width: 100%; }
+.resolve .reason { flex: 1 1 180px; min-width: 0; font: inherit; font-size: 12px; padding: 4px 8px; color: var(--text);
+  background: var(--surface); border: 1px solid var(--border); border-radius: 6px; }
+button.small { font-size: 12px; padding: 2px 8px; }
+.resolve-msg { font-size: 12px; color: var(--muted); }
+.error-text { color: var(--fail); }
+.phase-note { font-size: 12px; margin: 8px 0 0; padding: 6px 10px; border-radius: 6px; background: var(--surface); color: var(--muted); }
+.checks .tag.state-waiting { color: var(--accent); }
+.commitments .age.due { color: var(--accent); }
+.resolve .reason.due { flex: 0 1 160px; }
+.commitments .auto-note { color: var(--pass); }
+.evidence { margin: 4px 0 0; padding: 4px 8px; border-left: 3px solid var(--border); color: var(--muted); font-size: 12px; font-style: italic; }
+.commitments .auto-note.dropped { color: var(--muted); }
+.checks .tag.state-in_progress { color: var(--warn); }
+.checks .tag.state-out_of_scope { color: var(--fail); }
+.substeps { margin-top: 4px; font-size: 12px; }
+.substeps summary { cursor: pointer; color: var(--muted); }
+.substeps ol { margin: 4px 0 0; padding-left: 20px; }
+.substeps li { margin: 2px 0; }
+.stale-hint { font-size: 12px; margin: -4px 0 6px; }
+.stale-list li { border-left: 3px solid var(--warn); padding-left: 8px; }
+.recheck { margin-top: 8px; }
+.scope-items { margin-top: 8px; }
+.scope-list { margin: 4px 0 0; padding-left: 22px; font-size: 12px; }
+.scope-list li { margin: 2px 0; }
+.scope-list .scope-line { white-space: pre-wrap; }
+.scope-list .scope-kind { margin-left: 6px; font-size: 11px; color: var(--muted); }
+.scope-list .kind-conditional { color: var(--warn); }
+.commitments .labels { margin-top: 2px; }
+.commitments .labels .tag { font-size: 11px; color: var(--muted); margin-right: 6px; border: 1px solid var(--border, #ddd); border-radius: 3px; padding: 0 4px; }
+.commitments .labels .modality-offered, .commitments .labels .modality-contingent { color: var(--warn); }
+.commitments .labels .actor-unclear, .commitments .labels .modality-unclear { color: var(--fail); }
+.commitments blockquote.source { margin: 2px 0 0; padding-left: 8px; border-left: 2px solid var(--border, #ddd); font-size: 12px; color: var(--muted); }
+.commitments .condition, .commitments .accepted { font-size: 12px; }
+.commitments .outside-source, .commitments .hedges-dropped { font-size: 12px; color: var(--warn); }
+.commitments .suggested { margin: 4px 0; padding: 4px 8px; border-left: 3px solid var(--warn); font-size: 12px; }
+.commitments .suggested .evidence { margin: 2px 0; }
+.checks .tag.advisory { color: var(--muted); }
+
+/* The drop record: one line, expandable. */
+.drops { margin: 6px 0; font-size: 12px; color: var(--muted); }
+.drops > summary { cursor: pointer; color: var(--warn); }
+.drops ul { margin: 4px 0 0; padding-left: 18px; }
+.drops li { margin: 2px 0; overflow-wrap: anywhere; }

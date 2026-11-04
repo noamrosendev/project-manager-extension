@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Project Manager</title>
+  <link rel="stylesheet" href="../lib/ui.css">
+  <link rel="stylesheet" href="../lib/report.css">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header>
+    <label for="project" class="sr-only">Project</label>
+    <select id="project" title="Switch project"></select>
+    <button id="open-options" title="Options">Options</button>
+  </header>
+  <main id="app"><p class="muted">Loading…</p></main>
+  <div id="pagestatus" class="pagestatus" role="status" hidden></div>
+  <footer id="footer" hidden>
+    <button id="undo" title="Undo the most recent capture or commitment change (one level)">Undo last change</button>
+  </footer>
+  <script type="module" src="popup.js"></script>
+</body>
+</html>
