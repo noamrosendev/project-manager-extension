@@ -411,6 +411,7 @@
     .stale-meta { font-size: 11px; opacity: .6; margin: 2px 0 6px; }
     .stale-btns { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
     .secondary.small { padding: 3px 9px; font-size: 12px; }
+    .draft-ask { margin-top: 8px; }
     .stale-answer { font-weight: 600; color: #1f8a4c; }
     .stale-answer.err { color: #d93025; font-weight: 400; }
 
@@ -494,9 +495,12 @@
     const back = el("button", { type: "button", class: "secondary", text: projects.length && mode === "capture" ? "Back" : "Cancel" });
     const nameNote = el("div", { class: "name-note", hidden: true, text: "From the conversation title." });
     const draftNote = el("div", { class: "draft-note", role: "status", hidden: true });
+    const draftBtn = el("button", { type: "button", class: "secondary small draft-btn", text: "Draft goal from this reply" });
+    const draftWhy = el("div", { class: "hint draft-why", text: "Optional. Sends this reply and the conversation's title to OpenAI, with your key." });
     const form = el("form", { class: "np", novalidate: true },
       el("label", { for: nameIn.id, text: "Project name" }), nameIn, nameNote,
       draftNote,
+      ...(draftFrom ? [el("div", { class: "draft-ask" }, draftBtn, draftWhy)] : []),
       el("label", { for: goalIn.id, text: "What is the goal?" }), goalIn,
       el("div", { class: "hint", text: GOAL_HINT }),
       el("label", { for: oosIn.id }, "What is out of scope? ", el("span", { class: "optional", text: "(optional)" })), oosIn,
@@ -516,24 +520,24 @@
       el("button", { type: "button", class: "secondary", text: "Cancel" }));
     cancel.firstChild.addEventListener("click", e => { e.stopPropagation(); onCancel(); });
 
-    // ---- pre-fill: name from the title now, goal/out-of-scope draft when it
-    // arrives. Never blocks; only fills fields the user hasn't typed in.
+    // ---- pre-fill: name from the title now, which sends nothing. The goal and
+    // out-of-scope draft only when asked for: opening this form makes no call.
+    // Never blocks; only fills fields the user hasn't typed in.
     let drafted = { goal: null, oos: null, isGoalDefinition: false };
-    let draftAsked = false;
     let draftConfirmed = false;
     const markEdited = f => { f.classList.remove("drafted"); if (!form.querySelector(".drafted")) draftNote.hidden = true; };
     goalIn.addEventListener("input", () => markEdited(goalIn));
     oosIn.addEventListener("input", () => markEdited(oosIn));
     nameIn.addEventListener("input", () => { nameNote.hidden = true; });
     function startDraft() {
-      if (draftAsked || !draftFrom) return;
-      draftAsked = true;
+      draftBtn.disabled = true;
       draftNote.className = "draft-note loading";
       draftNote.textContent = "Drafting a goal from this response…";
       draftNote.hidden = false;
       log("draft requested");
       send({ type: "draftProject", text: draftFrom, title: prefillName }).then(res => {
         if (!node.isConnected) return;
+        draftBtn.disabled = false;
         let filled = false;
         if (res.ok && res.goal && !goalIn.value.trim()) {
           goalIn.value = res.goal; goalIn.classList.add("drafted"); drafted.goal = res.goal; filled = true;
@@ -546,8 +550,12 @@
         if (filled) {
           draftNote.className = "draft-note";
           draftNote.textContent = "Drafted from this conversation - edit before continuing.";
+          draftBtn.parentElement.hidden = true;
+        } else if (!res.ok || !res.goal) {
+          draftNote.className = "draft-note";
+          draftNote.textContent = "Couldn't draft a goal from this reply. Try again, or write it yourself.";
         } else {
-          draftNote.hidden = true;     // failure or nothing to fill: the empty form, as before
+          draftNote.hidden = true;     // arrived after the user typed: nothing to fill
         }
       });
     }
@@ -561,7 +569,6 @@
       if (!nameIn.value && prefillName) { nameIn.value = prefillName; nameNote.hidden = false; }
       nameIn.focus();
       if (nameNote.hidden === false && nameIn.value === prefillName) nameIn.select();   // typing replaces it
-      startDraft();
     };
     const showPicks = () => {
       picks.hidden = false;
@@ -576,6 +583,7 @@
       sub, picks, cancel, form);
 
     newBtn.addEventListener("click", e => { e.stopPropagation(); showForm(); });
+    draftBtn.addEventListener("click", e => { e.stopPropagation(); startDraft(); });
     back.addEventListener("click", e => {
       e.stopPropagation();
       if (projects.length && mode === "capture") showPicks(); else onCancel();

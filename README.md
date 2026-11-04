@@ -47,6 +47,10 @@ See [PRIVACY.md](PRIVACY.md). In short, your data stays in your browser, except 
 
 [Open an issue](https://github.com/noamrosendev/project-manager-extension/issues) (needs a free GitHub account). Please don't paste your key or private conversation text into it, because issues are public.
 
+## Licence
+
+Free to use. All rights reserved.
+
 ## This repository
 
 This is the extension as shipped, built from a private working repository. The tests aren't here because their fixtures hold real conversation text.

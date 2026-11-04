@@ -8,7 +8,7 @@ The extension sends text to OpenAI (`api.openai.com`), using your key, in these 
 
 - **When you capture a reply:** that reply, your message before it, the project's goal and out-of-scope rules, and its open commitments.
 - **When a capture reviews open commitments:** excerpts of earlier captured replies.
-- **When the new-project form opens:** an excerpt of the reply and the conversation's title, to pre-fill the form. This happens even if you then cancel.
+- **When you press Draft goal from this reply:** an excerpt of the reply and the conversation's title, to suggest a goal. Opening the form sends nothing.
 - **On a conversation's first capture:** your projects' names, goals and out-of-scope rules with an excerpt of the conversation, to record a guess at which project it belongs to.
 - **When you press Test key:** the word "ok".
 

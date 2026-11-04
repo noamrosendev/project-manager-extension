@@ -24,12 +24,12 @@
       </div>
       <p class="hint"><a id="keySteps" href="welcome.html">How to get a key</a>.</p>
       <p class="hint">Stored only in this browser (<code>chrome.storage.local</code>). Sent only to
-        <code>api.openai.com</code>. Never included in exports. About 2 cents per captured round with gpt-4o, more with more out-of-scope rules (measured on 161 stored rounds, 4 Nov 2026).</p>
+        <code>api.openai.com</code>. Never included in exports. About 2 cents per captured round with gpt-4o, more with more out-of-scope rules.</p>
       <p id="keyStatus" class="hint" role="status"></p>
 
       <label for="model">Model</label>
       <input id="model" type="text" spellcheck="false" placeholder="gpt-4o">
-      <p class="hint">The checks were validated with <code>gpt-4o</code>. Change only if you know why.</p>
+      <p class="hint">The checks were built and tested with <code>gpt-4o</code>. Change only if you know why.</p>
 
       <h2>Checks</h2>
       <label for="graceRounds">Rounds before an unconfirmed commitment counts as not done</label>
@@ -38,10 +38,6 @@
         When a reply doesn't address the open commitment, check C2 shows <strong>unverifiable</strong> (a warning)
         instead of failing. You can confirm it with <strong>Mark executed</strong> or <strong>Close with reason</strong>.
         If you haven't resolved it after this many rounds, C2 fails. Default 3.</p>
-      <p class="hint" id="c7Note"><strong>C7 (asks piling up) is counting only.</strong> It shows how many open steps
-        are yours, the assistant's, waits, or unclear, but never warns or fails. Its old thresholds were fitted to a
-        count that included almost every commitment, so they mean nothing now that only your own steps count. It will
-        be refitted from real rounds in which who must act is known.</p>
       <label class="inline"><input type="checkbox" id="askStale"> Ask about stale commitments before a capture</label>
       <p class="hint">Off by default. Commitments are judged from the responses you capture; ones nothing settles
         are left open to age (C3) and listed under <strong>Stale</strong> in the popup and on-page panel, where you
@@ -67,6 +63,14 @@
       defer each one with a click.</p>
     <div id="staleBacklog"></div>
 
+    <details id="devNotes">
+      <summary>Development notes (not needed to use this)</summary>
+      <p class="hint">What the author uses to measure the extension. Nothing here needs your attention.</p>
+      <h2>C7</h2>
+      <p class="hint" id="c7Note"><strong>C7 (asks piling up) is counting only.</strong> It shows how many open steps
+        are yours, the assistant's, waits, or unclear, but never warns or fails. Its old thresholds were fitted to a
+        count that included almost every commitment, so they mean nothing now that only your own steps count. It will
+        be refitted from real rounds in which who must act is known.</p>
     <h2>Automatic assignment (shadow mode)</h2>
     <p class="hint top">On a conversation's first capture, Project Manager predicts which project it belongs to and
       records the prediction next to the project you choose. It acts on nothing: it never files a conversation
@@ -90,6 +94,7 @@
       events (a claim decided through the mapping), measured by hand (your scored panels, with their source), or
       never tested. A check that has only ever passed is never tested, not right.</p>
     <div id="accuracy"></div>
+    </details>
 
     <h2>Backup</h2>
     <div class="row">
