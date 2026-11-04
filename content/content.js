@@ -383,6 +383,7 @@
 
     .panel { margin-top: 8px; padding: 14px; max-width: 520px; }
     .q { font-weight: 600; font-size: 14px; margin-bottom: 2px; }
+    .round-why { font-size: 12px; opacity: .65; margin-bottom: 6px; }
     .sub { opacity: .7; margin-bottom: 10px; font-size: 12px; }
     .picks { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; }
     .pick { display: block; padding: 7px 10px; border-radius: 6px; border: 1px solid rgba(127,127,127,.35); }
@@ -460,6 +461,7 @@
 
   // ---------------------------------------------------------------- the panel
 
+  const ROUND_WHY = "A round is one reply you capture, checked against your goal and your earlier rounds. Press Capture round under the latest reply when a piece of work is done or a decision is made, not under every reply. Each capture costs about 2 cents.";
   const GOAL_HINT = "What does done look like? Be specific enough that you could tell whether a given week moved toward it.";
   const OOS_HINT = "Anything you have decided not to do. The manager uses this to flag drift.";
 
@@ -580,6 +582,7 @@
 
     const sub = el("div", { class: "sub" });
     node.append(el("div", { class: "q", text: mode === "file" ? "New project" : "New conversation. Which project is this?" }),
+      ...(mode === "capture" ? [el("div", { class: "round-why", text: ROUND_WHY })] : []),
       sub, picks, cancel, form);
 
     newBtn.addEventListener("click", e => { e.stopPropagation(); showForm(); });

@@ -83,3 +83,4 @@ table.accuracy .hint { margin: 2px 0 0; font-size: 11px; }
 
 /* Definition history: old and new values in full, line breaks kept. */
 .definition-history .edit-from, .definition-history .edit-to { white-space: pre-wrap; overflow-wrap: anywhere; }
+.accuracy th:nth-child(-n+2), .accuracy td:nth-child(-n+2) { white-space: nowrap; overflow-wrap: normal; word-break: normal; }

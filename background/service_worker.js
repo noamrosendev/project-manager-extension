@@ -14,6 +14,7 @@ import { K, SCHEMA_VERSION, stripSeverityTokens, composeGoal, threadKey, loadPro
 import { setupMatch } from "../lib/setup.js";
 import { viewModel } from "../lib/report_model.js";
 import { SHADOW_KEY, buildShadowPrompt, shadowDecision } from "../lib/shadow.js";
+import { SHADOW_ASSIGN } from "../lib/build_flags.js";
 
 const SETUP = "SETUP";   // ledger.seen marker for a capture recorded as setup
 
@@ -562,7 +563,7 @@ async function capture(msg) {
 
   // Shadow assignment: if this is the conversation's first capture, note the
   // projects as they stand before it (see shadowPredict).
-  const shadow = await shadowSnapshot(msg.url);
+  const shadow = SHADOW_ASSIGN ? await shadowSnapshot(msg.url) : null;
 
   let project, created = false;
   if (msg.newProject) {
@@ -1117,7 +1118,8 @@ async function testKey() {
   if (!res.ok) {
     let error = null;
     try { error = (await res.json()).error; } catch {}
-    throw new UserError(callFailureMessage(res.status, error));
+    // What was pressed here is Test key, not Capture.
+    throw new UserError(callFailureMessage(res.status, error).replace("then capture again.", "then test again."));
   }
   return { status: "ok" };
 }

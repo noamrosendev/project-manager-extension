@@ -21,7 +21,7 @@ Keep the folder where it is. Chrome treats a folder at a different path as a dif
 The extension uses your own OpenAI account. It opens this screen when installed, and Options links back to it.
 
 1. Sign in or create an account at [platform.openai.com](https://platform.openai.com/). This is separate from a ChatGPT subscription, which doesn't include it.
-2. Add credit on the [billing page](https://platform.openai.com/settings/organization/billing/overview). $5 is plenty to start.
+2. Add credit on the [billing page](https://platform.openai.com/settings/organization/billing/overview). $5 is plenty to start. OpenAI's setup has auto-reload on by default, which buys more credit automatically when your balance runs low. Switch it off at the review step if you don't want a second charge.
 3. Create a secret key on the [API keys page](https://platform.openai.com/api-keys) and copy it.
 4. Paste it into the extension's screen and press **Test key**. The test makes one very small call to OpenAI.
 
@@ -29,7 +29,7 @@ A captured round costs about 2 cents with gpt-4o. Each out-of-scope rule you add
 
 ## First use
 
-Open a conversation on chatgpt.com or claude.ai and press **Capture round** under a reply. The first capture in a conversation asks which project it belongs to, or lets you name a new one with its goal. Press the verdict to see the panel.
+Open a conversation on chatgpt.com or claude.ai and press **Capture round** under the latest reply. A round is one reply you capture, checked against your goal and your earlier rounds. Press it when a piece of work is done or a decision is made, not under every reply. The first capture in a conversation asks which project it belongs to, or lets you name a new one with its goal. Press the verdict to see the panel, which says what the verdict means.
 
 Nothing is captured until you press the button.
 

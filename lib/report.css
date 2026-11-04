@@ -12,6 +12,7 @@
 }
 .verdict .big { font-size: 20px; font-weight: 700; letter-spacing: 0.01em; }
 .verdict .meta { font-size: 12px; margin-top: 2px; opacity: 0.9; }
+.verdict .means { font-size: 12px; margin-top: 2px; }
 .verdict .judged { font-size: 11px; margin-top: 2px; opacity: 0.75; }
 .summary { margin: 10px 0 0; font-style: italic; }
 .cumulative { margin: 6px 0 0; font-size: 12px; }

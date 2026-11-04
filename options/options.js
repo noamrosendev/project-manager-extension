@@ -329,6 +329,7 @@ chrome.storage.onChanged.addListener((changes, area) => {
 
 async function renderShadow() {
   const box = $("shadow");
+  if (!box) return;   // the public build has no shadow section
   const records = Object.values((await chrome.storage.local.get(SHADOW_KEY))[SHADOW_KEY] || {})
     .sort((a, b) => String(b.at).localeCompare(String(a.at)));
   const line = basis => {
@@ -399,10 +400,10 @@ async function renderAccuracy() {
     : r.events.map(x => `v${x.version}: ${x.claims} claim${x.claims === 1 ? "" : "s"} · right ${x.right} · wrong ${x.wrong} · ` +
       `no outcome ${x.none} (decided ${x.right + x.wrong} of ${x.claims})`).join(" | ");
   const handCell = r => r.hand
-    ? h("td", {}, `${r.hand.right} right, ${r.hand.wrong} wrong over ${r.hand.panels} panels (v${r.hand.version})`,
-        h("div", { class: "hint" }, `Source: ${r.hand.source}`))
+    ? h("td", {}, `${r.hand.right} right, ${r.hand.wrong} wrong over ${r.hand.panels} panels, ${r.hand.label}.`,
+        h("div", { class: "hint" }, r.hand.known))
     : h("td", {}, "—", r.excludedHand ? h("div", { class: "hint" },
-        `A figure exists (${r.excludedHand.right} right, ${r.excludedHand.wrong} wrong, v${r.excludedHand.version}) but is not counted: ${r.excludedHand.reason}.`) : null);
+        `The author has a figure (${r.excludedHand.right} right, ${r.excludedHand.wrong} wrong, v${r.excludedHand.version}) but is not counted: ${r.excludedHand.reason}.`) : null);
   const rows = accuracyRows(m);
   $("accuracy").replaceChildren(h("p", { class: "hint" }, `Mapping v${m.mapping}.`), h("p", {}, autoLine),
     h("table", { class: "accuracy" },

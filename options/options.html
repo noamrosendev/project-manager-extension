@@ -63,6 +63,14 @@
       defer each one with a click.</p>
     <div id="staleBacklog"></div>
 
+    <h2>Check accuracy</h2>
+    <p class="hint top">Read from the event record through a declared mapping (<code>lib/accuracy.js</code>), from
+      verdicts as they were recorded at capture, never recomputed. Three outcomes: right, wrong, no outcome. A
+      resolution nobody reopened is counted as unchallenged, never as right. Three states per check: measured by
+      events (a claim decided through the mapping), measured by hand (the author's scored panels, from the author's conversations, not yours), or
+      never tested. A check that has only ever passed is never tested, not right.</p>
+    <div id="accuracy"></div>
+
     <details id="devNotes">
       <summary>Development notes (not needed to use this)</summary>
       <p class="hint">What the author uses to measure the extension. Nothing here needs your attention.</p>
@@ -71,13 +79,6 @@
         are yours, the assistant's, waits, or unclear, but never warns or fails. Its old thresholds were fitted to a
         count that included almost every commitment, so they mean nothing now that only your own steps count. It will
         be refitted from real rounds in which who must act is known.</p>
-    <h2>Automatic assignment (shadow mode)</h2>
-    <p class="hint top">On a conversation's first capture, Project Manager predicts which project it belongs to and
-      records the prediction next to the project you choose. It acts on nothing: it never files a conversation
-      and never writes to a ledger. A prediction needs a quote found in the conversation and a lead of at least
-      25 points over the runner-up (another project, or none of them); otherwise it abstains, and that is
-      recorded too. The tally shows what automatic assignment could cover before any of it is switched on.</p>
-    <div id="shadow"></div>
 
     <h2>Event record</h2>
     <p class="hint top">Every verdict rendered and every later event that bears on it (resolved, reopened,
@@ -87,13 +88,6 @@
       and this says so.</p>
     <p id="eventRecord" class="hint"></p>
 
-    <h2>Check accuracy</h2>
-    <p class="hint top">Read from the event record through a declared mapping (<code>lib/accuracy.js</code>), from
-      verdicts as they were recorded at capture, never recomputed. Three outcomes: right, wrong, no outcome. A
-      resolution nobody reopened is counted as unchallenged, never as right. Three states per check: measured by
-      events (a claim decided through the mapping), measured by hand (your scored panels, with their source), or
-      never tested. A check that has only ever passed is never tested, not right.</p>
-    <div id="accuracy"></div>
     </details>
 
     <h2>Backup</h2>
