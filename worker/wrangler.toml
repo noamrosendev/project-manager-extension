@@ -1,0 +1,35 @@
+name = "pm-proxy"
+main = "src/index.js"
+compatibility_date = "2025-01-01"
+workers_dev = true
+# One address only. Without this, each uploaded version also gets its own preview address.
+preview_urls = false
+# Nothing is logged by this Worker, and platform logging stays off.
+logpush = false
+
+[observability]
+enabled = false
+
+[vars]
+MODEL = "gpt-4o-mini"
+ROUNDS_PER_DAY = "20"
+CALLS_PER_DAY = "100"
+MONTHLY_BUDGET_USD = "50"
+PER_CODE_MONTHLY_USD = "2"
+FEEDBACK_URL = "https://github.com/noamrosendev/project-manager-extension/issues"
+# Dollars per million tokens, as on OpenAI's pricing page, checked 5 Nov 2026 for gpt-4o-mini.
+# They are what the budget is counted in, so change them whenever MODEL changes.
+PRICE_INPUT_PER_M = "0.15"
+PRICE_OUTPUT_PER_M = "0.60"
+MAX_OUTPUT_TOKENS = "4000"
+MAX_BODY_BYTES = "262144"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "pm-proxy"
+database_id = "SET-AFTER-wrangler-d1-create"
+
+# Optional. The budget alert is best-effort and the caps don't depend on it. It needs
+# Cloudflare Email Routing on a domain. Uncomment and set ALERT_FROM and ALERT_TO as secrets.
+# [[send_email]]
+# name = "ALERT_EMAIL"

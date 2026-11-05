@@ -1,7 +1,8 @@
-import { report, DEFAULT_MODEL, OUTCOME_TYPES, EVENT_CAP_BYTES } from "../lib/core.js";
+import { report, OUTCOME_TYPES, EVENT_CAP_BYTES } from "../lib/core.js";
 import { composeGoal, loadProjects, loadLedger, loadReportOpts, definitionWarnings } from "../lib/store.js";
 import { SHADOW_KEY, shadowTally, shadowChoice } from "../lib/shadow.js";
 import { measure, MAPPING, accuracyRows } from "../lib/accuracy.js";
+import { CREDENTIAL_KEY } from "../lib/build_flags.js";
 import { scopeItemsOf, staleBacklog } from "../lib/report_model.js";
 import { scopeList } from "../lib/report_view.js";
 
@@ -42,9 +43,8 @@ async function send(msg) {
 // ------------------------------------------------------------ settings
 
 async function loadSettings() {
-  const s = await chrome.storage.local.get(["apiKey", "model"]);
-  $("apiKey").value = s.apiKey || "";
-  $("model").value = s.model || DEFAULT_MODEL;
+  const s = await chrome.storage.local.get([CREDENTIAL_KEY]);
+  $("apiKey").value = s[CREDENTIAL_KEY] || "";
   $("graceRounds").value = (await loadReportOpts()).graceRounds;
   $("askStale").checked = Boolean((await chrome.storage.local.get("askStaleAtCapture")).askStaleAtCapture);
 }
@@ -52,8 +52,7 @@ async function loadSettings() {
 $("settings").addEventListener("submit", async e => {
   e.preventDefault();
   await chrome.storage.local.set({
-    apiKey: $("apiKey").value.trim(),
-    model: $("model").value.trim() || DEFAULT_MODEL,
+    [CREDENTIAL_KEY]: $("apiKey").value.trim(),
     graceRounds: Math.min(20, Math.max(1, parseInt($("graceRounds").value, 10) || 3)),
     askStaleAtCapture: $("askStale").checked,
   });
@@ -68,10 +67,10 @@ $("toggleKey").addEventListener("click", () => {
 
 $("testKey").addEventListener("click", async () => {
   // Save the key first so the background worker tests what's in the field.
-  await chrome.storage.local.set({ apiKey: $("apiKey").value.trim() });
+  await chrome.storage.local.set({ [CREDENTIAL_KEY]: $("apiKey").value.trim() });
   flash($("keyStatus"), "Testing…");
   const res = await send({ type: "testKey" });
-  flash($("keyStatus"), res.ok ? "Key works and the account has credit." : res.error, res.ok ? "ok" : "bad");
+  flash($("keyStatus"), res.ok ? "Code works." : res.error, res.ok ? "ok" : "bad");
 });
 
 // ------------------------------------------------------------ projects
@@ -399,9 +398,9 @@ async function renderAccuracy() {
     : !r.events.length ? "no scored claims yet"
     : r.events.map(x => `v${x.version}: ${x.claims} claim${x.claims === 1 ? "" : "s"} · right ${x.right} · wrong ${x.wrong} · ` +
       `no outcome ${x.none} (decided ${x.right + x.wrong} of ${x.claims})`).join(" | ");
-  const handCell = r => r.hand
-    ? h("td", {}, `${r.hand.right} right, ${r.hand.wrong} wrong over ${r.hand.panels} panels, ${r.hand.label}.`,
-        h("div", { class: "hint" }, r.hand.known))
+  const handCell = r => r.historical
+    ? h("td", {}, `Historical only: ${r.historical.right} right, ${r.historical.wrong} wrong over ${r.historical.panels} panels, ${r.historical.label}.`,
+        h("div", { class: "hint" }, r.historical.known))
     : h("td", {}, "—", r.excludedHand ? h("div", { class: "hint" },
         `The author has a figure (${r.excludedHand.right} right, ${r.excludedHand.wrong} wrong, v${r.excludedHand.version}) but is not counted: ${r.excludedHand.reason}.`) : null);
   const rows = accuracyRows(m);

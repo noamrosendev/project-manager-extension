@@ -1,3 +1,4 @@
+import { CREDENTIAL_KEY } from "../lib/build_flags.js";
 import { K, loadProjects, loadLedger, reportOptsFor } from "../lib/store.js";
 import { viewModel } from "../lib/report_model.js";
 import { renderReport, fmtDate } from "../lib/report_view.js";
@@ -82,7 +83,7 @@ async function renderInto(app) {
   renderPicker(projects);
   const project = projects.find(p => p.id === selectedId);
 
-  const s = await chrome.storage.local.get(["apiKey", "lastError", project ? K.undo(project.id) : "_"]);
+  const s = await chrome.storage.local.get([CREDENTIAL_KEY, "lastError", project ? K.undo(project.id) : "_"]);
   footer.hidden = true;
 
   if (s.lastError) {
@@ -92,10 +93,10 @@ async function renderInto(app) {
       h("span", { class: "muted" }, ` · ${fmtDate(s.lastError.at)}`)));
   }
 
-  if (!s.apiKey) {
-    const btn = h("button", { class: "primary" }, "Add OpenAI API key");
-    btn.addEventListener("click", () => chrome.runtime.openOptionsPage());
-    app.append(h("p", {}, "Captures need your OpenAI API key."), btn);
+  if (!s[CREDENTIAL_KEY]) {
+    const btn = h("button", { class: "primary" }, "Add access code");
+    btn.addEventListener("click", () => send({ type: "openSetup" }));
+    app.append(h("p", {}, "Captures need your access code."), btn);
     return;
   }
 
@@ -139,7 +140,7 @@ document.getElementById("undo").addEventListener("click", async () => {
 // Re-render only for data the popup shows. Debug-log writes arrive many times
 // a second while debug mode is on; re-rendering on those collapsed the goal
 // section and rebuilt the handoff box under the user.
-const RELEVANT = /^(project:|ledger:|undo:)|^(projectIds|lastProjectId|lastError|apiKey|graceRounds)$/;
+const RELEVANT = /^(project:|ledger:|undo:)|^(projectIds|lastProjectId|lastError|apiKey|accessCode|graceRounds)$/;
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area === "local" && Object.keys(changes).some(k => RELEVANT.test(k))) render();
 });
@@ -173,7 +174,7 @@ async function showPageStatus(tab) {
 
 async function init() {
   await send({ type: "ready" });   // runs the v0.1 -> v0.2 migration if needed
-  // activeTab lets us see the current tab's URL when the popup is opened.
+  // The host permissions show a chat tab's URL. On any other tab it stays empty.
   let url = "";
   let tab = null;
   try {

@@ -4,7 +4,7 @@ A Chrome extension for long projects you run through ChatGPT or Claude. Press **
 
 It doesn't do the work and it won't suggest a direction. It only reports.
 
-**This is an early release.** Accuracy has not been established, so treat a verdict as a prompt to look, not as a finding. It runs on chatgpt.com and claude.ai, and has been tested in desktop Chrome only.
+**This is an early release.** Accuracy has not been established, so treat a verdict as a prompt to look, not as a finding. The test server uses a small model, `gpt-4o-mini` by default, while the checks were built on `gpt-4o`. Accuracy on the small model is unmeasured. It runs on chatgpt.com and claude.ai, and has been tested in desktop Chrome only.
 
 ## Install
 
@@ -16,16 +16,11 @@ Keep the folder where it is. Chrome treats a folder at a different path as a dif
 
 **To update:** replace the files inside that same folder, then click the reload icon on the extension's card in `chrome://extensions`.
 
-## Add your OpenAI key
+## Add your access code
 
-The extension uses your own OpenAI account. It opens this screen when installed, and Options links back to it.
+During this test you don't need an OpenAI account, and captures cost you nothing. The extension opens a screen when it's installed, and Options links back to it. Paste the code you were given and press **Test code**.
 
-1. Sign in or create an account at [platform.openai.com](https://platform.openai.com/). This is separate from a ChatGPT subscription, which doesn't include it.
-2. Add credit on the [billing page](https://platform.openai.com/settings/organization/billing/overview). $5 is plenty to start. OpenAI's setup has auto-reload on by default, which buys more credit automatically when your balance runs low. Switch it off at the review step if you don't want a second charge.
-3. Create a secret key on the [API keys page](https://platform.openai.com/api-keys) and copy it.
-4. Paste it into the extension's screen and press **Test key**. The test makes one very small call to OpenAI.
-
-A captured round costs about 2 cents with gpt-4o. Each out-of-scope rule you add costs a little more per round.
+Codes are given out by hand. Each has a limit of rounds per day and of dollars per month, and the whole test has a monthly budget. When one runs out, captures are refused and the message says which. If it's a monthly limit or the budget, please tell the author through the link in the message.
 
 ## First use
 
@@ -39,13 +34,34 @@ Nothing is captured until you press the button.
 - A long message that claude.ai turns into a pasted attachment can't be read. The panel says so when this happens. On ChatGPT the panel says only that your message couldn't be read.
 - A change to either site's page can stop the extension reading it.
 
+## What it can access
+
+Chrome lists these when you install. Each is here for one reason, and this list is checked against the extension's manifest whenever it's built.
+
+**Sites**
+
+- `https://chatgpt.com/*` and `https://claude.ai/*`: read and change these pages, so it can add the **Capture round** button and read the reply you capture. Its script runs on every page of these two sites. These two sites can also tell the extension is installed, because it makes three of its files available to them to draw the panel.
+- `https://pm-proxy.noamros13.workers.dev/*`: the test server. This is the only place it sends anything. It carries your captures to OpenAI, and checks your access code.
+
+It has no access to any other site, and it can't contact OpenAI or any other model API directly. All of that goes through the test server.
+
+**Browser features**
+
+- `storage`: keeps your code, projects and results in this browser.
+- `unlimitedStorage`: lets long projects grow past Chrome's default storage limit. It's still only this browser.
+- `scripting`: adds the button to chat tabs that were already open when the extension was installed or updated, and shows an error message on the page.
+- `contextMenus`: adds **Capture selection as a Project Manager round** to the right-click menu on the two chat sites.
+- `notifications`: shows a desktop notification if a capture error can't be shown on the page. It's used for nothing else.
+
 ## Privacy
 
-See [PRIVACY.md](PRIVACY.md). In short, your data stays in your browser, except for what is sent to OpenAI with your key. There is no server of ours and no analytics.
+See [PRIVACY.md](PRIVACY.md). In short, what you capture goes to OpenAI through a server we run, which stores none of it and keeps only counts. Your projects stay in your browser.
+
+The counts are deleted by the author running a command when the test ends, no later than 31 January 2027. It isn't automatic.
 
 ## Feedback
 
-[Open an issue](https://github.com/noamrosendev/project-manager-extension/issues) (needs a free GitHub account). Please don't paste your key or private conversation text into it, because issues are public.
+[Open an issue](https://github.com/noamrosendev/project-manager-extension/issues) (needs a free GitHub account). Please don't paste your code or private conversation text into it, because issues are public.
 
 ## Licence
 
@@ -53,4 +69,4 @@ Free to use. All rights reserved.
 
 ## This repository
 
-This is the extension as shipped, built from a private working repository. The tests aren't here because their fixtures hold real conversation text.
+This is the extension as shipped, built from a private working repository, plus the test server's code in `worker`. The tests aren't here because their fixtures hold real conversation text.

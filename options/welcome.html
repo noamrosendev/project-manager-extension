@@ -9,22 +9,15 @@
 </head>
 <body>
   <main>
-    <h1>Project Manager needs an OpenAI key</h1>
-    <p class="muted">It reads the replies you capture using your own OpenAI account, about 2 cents per captured reply.</p>
-    <ol class="key-steps">
-      <li>Sign in or create an account at <a href="https://platform.openai.com/" target="_blank" rel="noreferrer">platform.openai.com</a>. This is separate from a ChatGPT subscription, which doesn't include it.</li>
-      <li>Add credit on the <a href="https://platform.openai.com/settings/organization/billing/overview" target="_blank" rel="noreferrer">billing page</a>. $5 is plenty to start. OpenAI's setup has auto-reload on by default, which buys more credit automatically when your balance runs low. Switch it off at the review step if you don't want a second charge.</li>
-      <li>Create a secret key on the <a href="https://platform.openai.com/api-keys" target="_blank" rel="noreferrer">API keys page</a> and copy it.</li>
-      <li>Paste it here and test it.
-        <label for="apiKey" class="sr-only">OpenAI API key</label>
-        <div class="row">
-          <input id="apiKey" type="password" autocomplete="off" spellcheck="false" placeholder="sk-...">
-          <button type="button" id="testKey" class="primary">Test key</button>
-        </div>
-        <p id="keyStatus" class="hint" role="status"></p>
-        <p class="hint">Stored only in this browser. Sent only to <code>api.openai.com</code>.</p>
-      </li>
-    </ol>
+    <h1>Project Manager needs an access code</h1>
+    <p class="muted">During this test you don't need an OpenAI account. Paste the code you were given. It has a daily limit, and captures cost you nothing.</p>
+    <label for="apiKey">Access code</label>
+    <div class="row">
+      <input id="apiKey" type="password" autocomplete="off" spellcheck="false" placeholder="Your test code">
+      <button type="button" id="testKey" class="primary">Test code</button>
+    </div>
+    <p id="keyStatus" class="hint" role="status"></p>
+    <p class="hint">Stored only in this browser. What you capture goes to OpenAI through a server we run, which stores none of it. See <code>PRIVACY.md</code> in the download.</p>
     <p id="done" hidden><strong>You're set.</strong> Open a conversation on chatgpt.com or claude.ai and press <strong>Capture round</strong> under the latest reply. A round is one reply you capture, checked against your goal and your earlier rounds. Press it when a piece of work is done or a decision is made, not under every reply.</p>
   </main>
   <script type="module" src="welcome.js"></script>

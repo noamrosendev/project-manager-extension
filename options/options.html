@@ -15,21 +15,18 @@
       and the commitment ledger, and reports. <a id="feedback" href="https://github.com/noamrosendev/project-manager-extension/issues" target="_blank" rel="noreferrer">Send feedback</a>.</p>
 
     <form id="settings">
-      <h2>OpenAI</h2>
-      <label for="apiKey">API key</label>
+      <h2>Access code</h2>
+      <label for="apiKey">Access code</label>
       <div class="row">
-        <input id="apiKey" type="password" autocomplete="off" spellcheck="false" placeholder="sk-...">
+        <input id="apiKey" type="password" autocomplete="off" spellcheck="false" placeholder="Your test code">
         <button type="button" id="toggleKey">Show</button>
-        <button type="button" id="testKey">Test key</button>
+        <button type="button" id="testKey">Test code</button>
       </div>
-      <p class="hint"><a id="keySteps" href="welcome.html">How to get a key</a>.</p>
-      <p class="hint">Stored only in this browser (<code>chrome.storage.local</code>). Sent only to
-        <code>api.openai.com</code>. Never included in exports. About 2 cents per captured round with gpt-4o, more with more out-of-scope rules.</p>
+      <p class="hint"><a id="keySteps" href="welcome.html">What this is</a>.</p>
+      <p class="hint">Stored only in this browser (<code>chrome.storage.local</code>). Never included in exports.
+        Captures go to OpenAI through the test server, using its small model. The checks were built on
+        <code>gpt-4o</code>, and accuracy on the small model is unmeasured. See <code>PRIVACY.md</code>.</p>
       <p id="keyStatus" class="hint" role="status"></p>
-
-      <label for="model">Model</label>
-      <input id="model" type="text" spellcheck="false" placeholder="gpt-4o">
-      <p class="hint">The checks were built and tested with <code>gpt-4o</code>. Change only if you know why.</p>
 
       <h2>Checks</h2>
       <label for="graceRounds">Rounds before an unconfirmed commitment counts as not done</label>
@@ -68,7 +65,8 @@
       verdicts as they were recorded at capture, never recomputed. Three outcomes: right, wrong, no outcome. A
       resolution nobody reopened is counted as unchallenged, never as right. Three states per check: measured by
       events (a claim decided through the mapping), measured by hand (the author's scored panels, from the author's conversations, not yours), or
-      never tested. A check that has only ever passed is never tested, not right.</p>
+      never tested. A check that has only ever passed is never tested, not right. Every by-hand figure here was scored on
+      <code>gpt-4o</code>, which this extension no longer uses, so none of them describes it now.</p>
     <div id="accuracy"></div>
 
     <details id="devNotes">

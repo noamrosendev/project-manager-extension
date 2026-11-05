@@ -1,18 +1,17 @@
 {
   "manifest_version": 3,
   "name": "Project Manager",
-  "version": "0.49.0",
+  "version": "0.54.1",
   "description": "Detects when an AI-assisted project is circling rather than progressing.",
   "permissions": [
     "storage",
     "contextMenus",
-    "activeTab",
     "scripting",
     "notifications",
     "unlimitedStorage"
   ],
   "host_permissions": [
-    "https://api.openai.com/*",
+    "https://pm-proxy.noamros13.workers.dev/*",
     "https://chatgpt.com/*",
     "https://claude.ai/*"
   ],
@@ -50,7 +49,7 @@
     "128": "icons/icon128.png"
   },
   "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self'; connect-src https://api.openai.com"
+    "extension_pages": "script-src 'self'; object-src 'self'; connect-src https://pm-proxy.noamros13.workers.dev"
   },
   "web_accessible_resources": [
     {

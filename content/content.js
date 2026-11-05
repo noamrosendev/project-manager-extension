@@ -317,6 +317,15 @@
     updatePill();
     if (pageOverride && !ctx.projects.some(p => p.id === pageOverride)) pageOverride = null;
     bars.forEach(b => b.update());
+    updateSetupPrompt();
+  }
+
+  // No key or code yet: the latest reply's bar says so, before anything is pressed,
+  // so a missed first-run tab doesn't leave a person with nothing to go on.
+  function updateSetupPrompt() {
+    const live = [...bars].filter(b => b.host.isConnected);
+    const latest = live.reduce((a, b) => !a || (a.host.compareDocumentPosition(b.host) & Node.DOCUMENT_POSITION_FOLLOWING) ? b : a, null);
+    for (const b of live) b.showSetup(!ctx.hasApiKey && b === latest && !orphaned);
   }
 
   // Remember the outcome of filing: the service worker keys it by conversation
@@ -384,6 +393,8 @@
     .panel { margin-top: 8px; padding: 14px; max-width: 520px; }
     .q { font-weight: 600; font-size: 14px; margin-bottom: 2px; }
     .round-why { font-size: 12px; opacity: .65; margin-bottom: 6px; }
+    .setup { font-size: 12px; color: #b26d00; display: inline-flex; gap: 6px; align-items: center; }
+    .setup[hidden] { display: none; }
     .sub { opacity: .7; margin-bottom: 10px; font-size: 12px; }
     .picks { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; }
     .pick { display: block; padding: 7px 10px; border-radius: 6px; border: 1px solid rgba(127,127,127,.35); }
@@ -461,7 +472,7 @@
 
   // ---------------------------------------------------------------- the panel
 
-  const ROUND_WHY = "A round is one reply you capture, checked against your goal and your earlier rounds. Press Capture round under the latest reply when a piece of work is done or a decision is made, not under every reply. Each capture costs about 2 cents.";
+  const ROUND_WHY = "A round is one reply you capture, checked against your goal and your earlier rounds. Press Capture round under the latest reply when a piece of work is done or a decision is made, not under every reply. Your code has a daily limit.";
   const GOAL_HINT = "What does done look like? Be specific enough that you could tell whether a given week moved toward it.";
   const OOS_HINT = "Anything you have decided not to do. The manager uses this to flag drift.";
 
@@ -498,7 +509,7 @@
     const nameNote = el("div", { class: "name-note", hidden: true, text: "From the conversation title." });
     const draftNote = el("div", { class: "draft-note", role: "status", hidden: true });
     const draftBtn = el("button", { type: "button", class: "secondary small draft-btn", text: "Draft goal from this reply" });
-    const draftWhy = el("div", { class: "hint draft-why", text: "Optional. Sends this reply and the conversation's title to OpenAI, with your key." });
+    const draftWhy = el("div", { class: "hint draft-why", text: "Optional. Sends this reply and the conversation's title to OpenAI, through the test server." });
     const form = el("form", { class: "np", novalidate: true },
       el("label", { for: nameIn.id, text: "Project name" }), nameIn, nameNote,
       draftNote,
@@ -640,7 +651,7 @@
   async function runCapture(ui, text) {
     if (!text) return ui.setStatus("error", "Response is empty.");
     await refreshCtx();
-    if (!ctx.hasApiKey) return ui.setStatus("error", "Add your OpenAI API key first.", true);
+    if (!ctx.hasApiKey) return ui.setStatus("error", "Add your access code first.", true);
     const pid = currentProjectId();
     if (pid) return doCapture(ui, text, { projectId: pid });
     ui.setStatus("", "");
@@ -1063,6 +1074,15 @@
     return { chip, kind: s.kind };
   }
 
+  // A refusal asking the tester to get in touch: the feedback address becomes a real
+  // link. Only this exact address, so a message can't put any other link on the page.
+  const FEEDBACK_URL = "https://github.com/noamrosendev/project-manager-extension/issues";
+  function fillStatus(node, text) {
+    const at = String(text).indexOf(FEEDBACK_URL);
+    if (at < 0) { node.textContent = text; return; }
+    node.replaceChildren(text.slice(0, at), el("a", { href: FEEDBACK_URL, target: "_blank", rel: "noreferrer", text: FEEDBACK_URL }), text.slice(at + FEEDBACK_URL.length));
+  }
+
   // ---------------------------------------------------------------- inline bar
 
   function makeBar(msgEl) {
@@ -1070,9 +1090,12 @@
     const cap = el("button", { type: "button", class: "cap", title: "Project Manager: count this response as one round" });
     const proj = el("button", { type: "button", class: "proj", "aria-haspopup": "listbox", "aria-expanded": "false", title: "Change project" });
     const status = el("span", { class: "status", role: "status" });
+    const setupBtn = el("button", { type: "button", class: "link", text: "Set up" });
+    setupBtn.addEventListener("click", e => { e.preventDefault(); e.stopPropagation(); send({ type: "openSetup" }); });
+    const setup = el("span", { class: "setup", hidden: true }, el("span", { text: "Project Manager needs your access code." }), setupBtn);
     const slot = el("div");
     const menu = el("div", { class: "menu", role: "listbox", "aria-label": "File under project", hidden: true });
-    ui.append(el("div", { class: "bar" }, cap, proj, status), slot, menu);
+    ui.append(el("div", { class: "bar" }, cap, proj, status, setup), slot, menu);
 
     let panel = null;
     let busy = false;
@@ -1081,6 +1104,7 @@
       host,
       msgEl,
       captured: null,   // { projectName, projectId, round, verdict, setup } once filed in a ledger
+      showSetup(on) { setup.hidden = !on; },
       update() {
         if (this.captured) {
           cap.textContent = this.captured.setup ? "Setup ✓" : "Captured ✓";
@@ -1108,10 +1132,10 @@
 
     function setStatus(kind, text, withOptionsLink) {
       status.className = "status" + (kind ? ` ${kind}` : "");
-      status.textContent = text;
+      fillStatus(status, text);
       if (withOptionsLink) {
-        const a = el("button", { type: "button", class: "link", text: "Open Options" });
-        a.addEventListener("click", e => { e.stopPropagation(); send({ type: "openOptions" }); });
+        const a = el("button", { type: "button", class: "link", text: "Set up" });
+        a.addEventListener("click", e => { e.stopPropagation(); send({ type: "openSetup" }); });
         status.append(a);
       }
     }
@@ -1406,10 +1430,10 @@
 
     const setStatus = (kind, t, withOptionsLink) => {
       status.className = "status" + (kind ? ` ${kind}` : "");
-      status.textContent = t;
+      fillStatus(status, t);
       if (withOptionsLink) {
-        const a = el("button", { type: "button", class: "link", text: "Open Options" });
-        a.addEventListener("click", e => { e.stopPropagation(); send({ type: "openOptions" }); });
+        const a = el("button", { type: "button", class: "link", text: "Set up" });
+        a.addEventListener("click", e => { e.stopPropagation(); send({ type: "openSetup" }); });
         status.append(a);
       }
     };
@@ -1549,6 +1573,7 @@
         }
       });
       diag.bars = [...bars].filter(b => b.host.isConnected).length;
+      updateSetupPrompt();
     } catch (e) {
       reportError("scanning the page", e);
     }
@@ -1613,6 +1638,7 @@
     // Stability (and SPA URL changes) need a tick even when the DOM goes quiet.
     ticker = setInterval(scan, 1000);
     document.addEventListener("visibilitychange", () => { if (!document.hidden) refreshCtx(); });
+    chrome.storage.onChanged.addListener((ch, area) => { if (area === "local" && alive() && ("apiKey" in ch || "accessCode" in ch)) refreshCtx(); });
     refreshCtx().then(scan);
   }
 

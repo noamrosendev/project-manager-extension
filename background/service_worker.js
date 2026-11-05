@@ -1,5 +1,5 @@
 // Background service worker: owns all project data (single writer) and the
-// only network call (api.openai.com). The API key is read from
+// only network call (the test server). The API key is read from
 // chrome.storage.local per request and is never logged, echoed in errors,
 // exported, or sent anywhere else.
 
@@ -14,7 +14,7 @@ import { K, SCHEMA_VERSION, stripSeverityTokens, composeGoal, threadKey, loadPro
 import { setupMatch } from "../lib/setup.js";
 import { viewModel } from "../lib/report_model.js";
 import { SHADOW_KEY, buildShadowPrompt, shadowDecision } from "../lib/shadow.js";
-import { SHADOW_ASSIGN } from "../lib/build_flags.js";
+import { SHADOW_ASSIGN, PROXY_URL, CREDENTIAL_KEY } from "../lib/build_flags.js";
 
 const SETUP = "SETUP";   // ledger.seen marker for a capture recorded as setup
 
@@ -195,6 +195,13 @@ async function notifyTabs() {
 }
 
 async function refreshBadge() {
+  // Until there is a key or code, that is the one thing to say.
+  if (!await getApiKey()) {
+    await chrome.action.setBadgeBackgroundColor({ color: "#b26d00" });
+    await chrome.action.setBadgeText({ text: "!" });
+    await chrome.action.setTitle({ title: "Project Manager needs your access code" });
+    return;
+  }
   const { projects, lastProjectId } = await loadProjects();
   const p = projects.find(x => x.id === lastProjectId);
   if (!p) {
@@ -238,16 +245,26 @@ function cleanGoal(goal) {
 // ------------------------------------------------------------ OpenAI
 
 async function getApiKey() {
-  return ((await local.get("apiKey")).apiKey || "").trim();
+  return ((await local.get(CREDENTIAL_KEY))[CREDENTIAL_KEY] || "").trim();
+}
+
+// Through the proxy: the code in a header, a real key refused here so it is never sent.
+const NOT_A_CODE = "That looks like an OpenAI key. This version needs an access code, so nothing was sent.";
+function proxyGuard(credential) {
+  if (PROXY_URL && /^sk-/.test(credential)) throw new UserError(NOT_A_CODE);
 }
 
 // opts.maxTokens caps the answer; opts.timeoutMs aborts a slow call.
+// opts.round marks a capture's main call, which is what the proxy counts as a round.
 async function callLLM(prompt, model, apiKey, opts = {}) {
+  proxyGuard(apiKey);
   let res;
   try {
-    res = await fetch("https://api.openai.com/v1/chat/completions", {
+    res = await fetch(PROXY_URL ? `${PROXY_URL}/v1/chat/completions` : `${PROXY_URL}/v1/chat/completions`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${apiKey}` },
+      headers: { "Content-Type": "application/json", ...(PROXY_URL
+        ? { "X-Access-Code": apiKey, ...(opts.round ? { "X-PM-Round": "1" } : {}) }
+        : { "Authorization": `Bearer ${apiKey}` }) },
       body: JSON.stringify({
         model,
         messages: [{ role: "user", content: prompt }],
@@ -264,7 +281,8 @@ async function callLLM(prompt, model, apiKey, opts = {}) {
   if (!res.ok) {
     let error = null;
     try { error = (await res.json()).error; } catch {}
-    throw new UserError(callFailureMessage(res.status, error));
+    // The proxy's refusals are written for the person reading them.
+    throw new UserError(PROXY_URL && error?.message ? error.message : callFailureMessage(res.status, error));
   }
   const body = await res.json();
   const content = body.choices?.[0]?.message?.content;
@@ -403,7 +421,7 @@ async function shadowPredict(snap, convo, chosen, apiKey) {
     candidates: snap.candidates.map(c => ({ id: c.id, name: c.name })), chosen };
   try {
     if (snap.candidates.length) {
-      const model = (await local.get("model")).model || DEFAULT_MODEL;
+      const model = DEFAULT_MODEL;
       const out = await callLLM(buildShadowPrompt(snap.candidates, convo), model, apiKey, { maxTokens: 300, timeoutMs: 20000 });
       rec.prediction = shadowDecision(out, snap.candidates, convo);
     } else {
@@ -476,7 +494,7 @@ async function reviewCommitments({ projectId, history }) {
   const before = JSON.parse(JSON.stringify(ledger));
   const drops = [];
   await backfillExcerpts(ledger, history, drops);
-  const model = (await local.get("model")).model || DEFAULT_MODEL;
+  const model = DEFAULT_MODEL;
   const changed = await runReview(p, ledger, apiKey, model, { round: ledger.rounds.at(-1)?.round ?? 0 }, drops);
   ledger.review_version = REVIEW_VERSION;
   // A Re-check runs after the latest round: what it drops is recorded there.
@@ -631,7 +649,7 @@ async function capture(msg) {
     return { ...base, status: "duplicate", round: round?.round, verdict: r?.verdict };
   }
 
-  const model = (await local.get("model")).model || DEFAULT_MODEL;
+  const model = DEFAULT_MODEL;
   // Catch-up review, once per project: judge every open commitment against
   // the rounds since it was raised, before this capture's extraction (so the
   // extraction sees an up-to-date list). A failed review never blocks.
@@ -651,7 +669,7 @@ async function capture(msg) {
   const scopeLines = outOfScopeLines(project);
   dlog("capture: calling OpenAI", { model, round: ledger.rounds.length + 1, scopeRules: scopeLines.length });
   const [main, ...scope] = await Promise.all([
-    callLLM(buildPrompt(ledger, goalText, text, undefined, userText), model, apiKey),
+    callLLM(buildPrompt(ledger, goalText, text, undefined, userText), model, apiKey, { round: true }),
     ...scopeLines.map(line => callLLM(buildScopePrompt(goalText, line, text), model, apiKey)
       .catch(e => ({ error: String(e?.message || e) }))),   // a failed rule check never blocks the capture
   ]);
@@ -909,7 +927,7 @@ async function draftProject({ text, title }) {
   const apiKey = await getApiKey();
   if (!apiKey) throw new UserError(CALL_FAILURES.noKey);
   if (!String(text || "").trim()) throw new UserError("Nothing to draft from.");
-  const model = (await local.get("model")).model || DEFAULT_MODEL;
+  const model = DEFAULT_MODEL;
   const t0 = Date.now();
   const data = await callLLM(buildDraftPrompt(title, text), model, apiKey, { maxTokens: 400, timeoutMs: 8000 });
   const goal = clip(String(data.goal || "").replace(/\s+\n/g, "\n").trim(), 800);
@@ -1101,12 +1119,14 @@ async function importAll({ data, mode }) {
 async function testKey() {
   const apiKey = await getApiKey();
   if (!apiKey) throw new UserError(CALL_FAILURES.noKey);
+  proxyGuard(apiKey);
+  if (PROXY_URL) return testCode(apiKey);
   let res;
   try {
     // One token, on the configured model: listing models succeeds with no
     // credit, so it cannot tell a working key from an unfunded one.
-    const model = (await local.get("model")).model || DEFAULT_MODEL;
-    res = await fetch("https://api.openai.com/v1/chat/completions", {
+    const model = DEFAULT_MODEL;
+    res = await fetch(`${PROXY_URL}/v1/chat/completions`, {
       method: "POST",
       headers: { "Content-Type": "application/json", "Authorization": `Bearer ${apiKey}` },
       body: JSON.stringify({ model, messages: [{ role: "user", content: "ok" }], max_tokens: 1 }),
@@ -1120,6 +1140,22 @@ async function testKey() {
     try { error = (await res.json()).error; } catch {}
     // What was pressed here is Test key, not Capture.
     throw new UserError(callFailureMessage(res.status, error).replace("then capture again.", "then test again."));
+  }
+  return { status: "ok" };
+}
+
+// Asks the proxy about the code. No model call, so it costs nothing and sends no text.
+async function testCode(code) {
+  let res;
+  try {
+    res = await fetch(`${PROXY_URL}/v1/check`, { headers: { "X-Access-Code": code }, signal: AbortSignal.timeout(20000) });
+  } catch (e) {
+    throw new UserError(e?.name === "TimeoutError" || e?.name === "AbortError" ? CALL_FAILURES.slow : CALL_FAILURES.unreachable);
+  }
+  if (!res.ok) {
+    let error = null;
+    try { error = (await res.json()).error; } catch {}
+    throw new UserError(error?.message || callFailureMessage(res.status, error));
   }
   return { status: "ok" };
 }
@@ -1160,6 +1196,7 @@ const HANDLERS = {
   import: msg => serialised(() => importAll(msg)),
   testKey: () => testKey(),
   openOptions: async () => { await chrome.runtime.openOptionsPage(); return {}; },
+  openSetup: async () => { await showSetup(); return {}; },
   // Steps reported by content scripts; only kept when debug mode is on.
   log: async msg => { dlog(`page: ${msg.step}`, msg.detail); return {}; },
   injectTab: msg => ensureContentScript(msg.tabId),
@@ -1341,28 +1378,46 @@ chrome.contextMenus.onClicked.addListener(onMenuClick);
 // Test hook (used by test/e2e.mjs; harmless in normal use).
 globalThis.__pmMenuClick = onMenuClick;
 
+// The setup screen, in front: its open tab if there is one, or a new one.
+async function showSetup() {
+  const url = chrome.runtime.getURL("options/welcome.html");
+  const [open] = await chrome.runtime.getContexts({ contextTypes: ["TAB"], documentUrls: [url] });
+  const tab = open ? await chrome.tabs.update(open.tabId, { active: true }) : await chrome.tabs.create({ url });
+  if (tab?.windowId != null) await chrome.windows.update(tab.windowId, { focused: true }).catch(() => {});
+  return tab;
+}
+
+// Only the key or code needs setting up front; projects start at first capture. Once
+// only, because a browser can report "install" again for an unpacked extension, and
+// spent only on a tab that really opened. A failure tries again at the next start.
+async function openFirstRun() {
+  try {
+    const { [CREDENTIAL_KEY]: credential, firstRunShown } = await local.get([CREDENTIAL_KEY, "firstRunShown"]);
+    if (credential || firstRunShown) return;
+    await showSetup();
+    await local.set({ firstRunShown: true });
+  } catch (e) {
+    dlog("first run: couldn't open the setup screen", e?.message);
+  }
+}
+globalThis.__pmOpenFirstRun = openFirstRun;   // test hook, like __pmMenuClick
+
 chrome.runtime.onInstalled.addListener(async details => {
   await debugReady;
+  // First, so nothing below can stop it.
+  if (details.reason === "install") await openFirstRun();
   await createMenus();
   await ensureReady();
   dlog("installed", { reason: details.reason, version: chrome.runtime.getManifest().version });
   // Tabs opened before this install/update have no content script yet.
   await injectIntoOpenTabs();
-  // Only the API key needs setting up front; projects start at first capture.
-  // Once only: a browser can report "install" again for an unpacked extension.
-  if (details.reason === "install") {
-    const { apiKey, firstRunShown } = await local.get(["apiKey", "firstRunShown"]);
-    if (!apiKey && !firstRunShown) {
-      await local.set({ firstRunShown: true });
-      chrome.tabs.create({ url: chrome.runtime.getURL("options/welcome.html") });
-    }
-  }
   refreshBadge();
 });
 
-chrome.runtime.onStartup.addListener(() => ensureReady().then(refreshBadge));
+chrome.runtime.onStartup.addListener(() => { openFirstRun(); ensureReady().then(refreshBadge); });
 
 chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === "local" && CREDENTIAL_KEY in changes) refreshBadge();
   if (area === "local" && changes.debug) {
     debugOn = Boolean(changes.debug.newValue);
     chrome.contextMenus.update(TEST_MENU_ID, { visible: debugOn }, () => void chrome.runtime.lastError);
